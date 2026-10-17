@@ -1,0 +1,21 @@
+version: "1.0"
+operator: "security-operations@surfacewatch.internal"
+allowlist:
+  domains:
+    - "example.com"
+    - "surfacewatch.local"
+  wildcards:
+    - "*.example.com"
+    - "*.surfacewatch.local"
+  repositories:
+    - "./testdata"
+    - "./"
+  cidrs:
+    - "127.0.0.1/32"
+    - "192.168.0.0/16"
+excludes:
+  domains:
+    - "internal-secrets.example.com"
+  repositories:
+    - "./.git"
+    - "./vendor"

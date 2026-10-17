@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+  surfacewatch:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: surfacewatch-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=postgres://surfacewatch:surfacewatch_secret@postgres:5432/surfacewatch?sslmode=disable
+      - REDIS_ADDR=redis:6379
+      - SURFACEWATCH_DEV_ADMIN_KEY=sw_dev_admin_secret_token_123
+      - SURFACEWATCH_ALLOW_LIVE_CALLS=false
+      - SURFACEWATCH_ENABLE_PPROF=false
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - surfacewatch-net
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: surfacewatch-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: surfacewatch
+      POSTGRES_PASSWORD: surfacewatch_secret
+      POSTGRES_DB: surfacewatch
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U surfacewatch -d surfacewatch"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - surfacewatch-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: surfacewatch-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - surfacewatch-net
+
+networks:
+  surfacewatch-net:
+    driver: bridge
+
+volumes:
+  pgdata:
+  redisdata:

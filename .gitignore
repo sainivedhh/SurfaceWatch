@@ -1,0 +1,28 @@
+# Binaries & executables
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test & coverage artifacts
+coverage.out
+*.test
+*.prof
+
+# Environment & local credentials
+.env
+.env.local
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary & cache
+tmp/
+scratch/

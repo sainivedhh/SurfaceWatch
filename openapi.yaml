@@ -1,0 +1,152 @@
+openapi: 3.0.3
+info:
+  title: SurfaceWatch Monitoring API
+  version: 1.0.0
+  description: |
+    Production-grade authorized-use attack-surface monitoring and exposed-secret detection API.
+    Designed for multi-tenant isolation, role-based access control, and defense-in-depth security.
+servers:
+  - url: http://localhost:8080
+    description: Local Development Server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /healthz:
+    get:
+      summary: Liveness Probe
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+
+  /readyz:
+    get:
+      summary: Readiness Probe
+      security: []
+      responses:
+        '200':
+          description: Service and downstream dependencies are ready
+
+  /api/v1/assets:
+    post:
+      summary: Create Authorized Asset
+      description: Registers an asset for security monitoring. Target must be authorized in scope.yaml.
+      responses:
+        '201':
+          description: Asset created successfully
+        '400':
+          description: Invalid input or request body
+        '403':
+          description: Insufficient role permissions (Admin required)
+        '422':
+          description: Asset is out of authorized scope
+    get:
+      summary: List Authorized Assets
+      description: Retrieves assets owned by the authenticated tenant.
+      responses:
+        '200':
+          description: List of assets
+
+  /api/v1/scans:
+    post:
+      summary: Trigger Security Scan
+      description: Dispatches passive collectors for the specified asset.
+      responses:
+        '202':
+          description: Scan accepted and queued
+        '404':
+          description: Asset not found
+    get:
+      summary: List Scans
+      description: Retrieves historical scans for the authenticated tenant.
+      responses:
+        '200':
+          description: List of scans
+
+  /api/v1/findings:
+    get:
+      summary: Query Security Findings
+      description: Lists findings with filtering (severity, status, asset_id) and cursor pagination.
+      parameters:
+        - name: severity
+          in: query
+          schema:
+            type: string
+            enum: [CRITICAL, HIGH, MEDIUM, LOW, INFO]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [new, acknowledged, resolved, reopened]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: cursor
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Paged list of findings
+
+  /api/v1/findings/{id}:
+    get:
+      summary: Get Single Finding
+      description: Retrieves finding details. Isolated per tenant to prevent IDOR.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Finding detail
+        '404':
+          description: Finding not found or unauthorized
+
+  /api/v1/findings/{id}/status:
+    patch:
+      summary: Update Finding Lifecycle Status
+      description: Transitions finding status (e.g. from new to acknowledged or resolved).
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [new, acknowledged, resolved, reopened]
+      responses:
+        '200':
+          description: Finding updated
+
+  /api/v1/stats/summary:
+    get:
+      summary: Get Attack Surface Statistics
+      description: Summarizes findings count by severity, status, and active assets.
+      responses:
+        '200':
+          description: Statistics summary
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Authenticate using API Key (Bearer format also accepted)
