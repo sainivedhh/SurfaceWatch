@@ -130,11 +130,11 @@ func (app *AppContext) HandleCreateAsset(w http.ResponseWriter, r *http.Request)
 
 	now := time.Now().UTC()
 	asset := &model.Asset{
-		ID: uuid.New(),
-		TenantID: tenantID,
-		Type: req.Type,
-		Value: val,
-		Labels: req.Labels,
+		ID:        uuid.New(),
+		TenantID:  tenantID,
+		Type:      req.Type,
+		Value:     val,
+		Labels:    req.Labels,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -176,13 +176,13 @@ func (app *AppContext) HandleCreateScan(w http.ResponseWriter, r *http.Request) 
 
 	now := time.Now().UTC()
 	scan := &model.Scan{
-		ID: uuid.New(),
-		TenantID: tenantID,
+		ID:            uuid.New(),
+		TenantID:      tenantID,
 		TargetAssetID: asset.ID,
-		TargetValue: asset.Value,
-		Status: model.ScanStatusQueued,
-		CreatedAt: now,
-		UpdatedAt: now,
+		TargetValue:   asset.Value,
+		Status:        model.ScanStatusQueued,
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}
 	app.ScanStore.Create(scan)
 
@@ -199,13 +199,13 @@ func (app *AppContext) HandleCreateScan(w http.ResponseWriter, r *http.Request) 
 
 	for _, colName := range collectorsForAsset {
 		job := &scheduler.Job{
-			ID: uuid.New(),
-			TenantID: tenantID,
-			ScanID: scan.ID,
+			ID:            uuid.New(),
+			TenantID:      tenantID,
+			ScanID:        scan.ID,
 			CollectorName: colName,
-			Target: *asset,
-			Status: scheduler.JobStatusQueued,
-			NextRunAt: now,
+			Target:        *asset,
+			Status:        scheduler.JobStatusQueued,
+			NextRunAt:     now,
 		}
 		_ = app.Scheduler.Enqueue(r.Context(), job)
 	}
@@ -230,8 +230,8 @@ func (app *AppContext) HandleListFindings(w http.ResponseWriter, r *http.Request
 
 	filter := pipeline.Filter{
 		Severity: q.Get("severity"),
-		Status: q.Get("status"),
-		Cursor: q.Get("cursor"),
+		Status:   q.Get("status"),
+		Cursor:   q.Get("cursor"),
 	}
 
 	if limitStr := q.Get("limit"); limitStr != "" {
@@ -376,11 +376,11 @@ func (app *AppContext) HandleStatsSummary(w http.ResponseWriter, r *http.Request
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]any{
-		"total_assets":    len(assets),
-		"total_scans":     len(scans),
-		"total_findings":  len(findings),
-		"by_severity":     severityCounts,
-		"by_status":       statusCounts,
+		"total_assets":   len(assets),
+		"total_scans":    len(scans),
+		"total_findings": len(findings),
+		"by_severity":    severityCounts,
+		"by_status":      statusCounts,
 	})
 }
 
@@ -406,7 +406,7 @@ func (app *AppContext) HandleReadyz(w http.ResponseWriter, r *http.Request) {
 		"components": map[string]string{
 			"scheduler": "healthy",
 			"findings":  "healthy",
-			"cache":      cacheStatus,
+			"cache":     cacheStatus,
 		},
 	})
 }

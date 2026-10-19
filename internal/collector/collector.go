@@ -21,15 +21,15 @@ const EnvAllowLiveCalls = "SURFACEWATCH_ALLOW_LIVE_CALLS"
 // RawFinding represents an unpersisted observation made by a collector.
 // It will be processed, fingerprinted, scored, and deduplicated in the pipeline.
 type RawFinding struct {
-	TargetAsset     model.Asset            `json:"target_asset"`
-	FindingType     string                 `json:"finding_type"`
-	Severity        model.Severity         `json:"severity"`
-	Title           string                 `json:"title"`
-	Description     string                 `json:"description"`
-	EvidenceKey     string                 `json:"evidence_key"`	// Unique identifier within the asset (e.g. domain, file:line)
-	Evidence        map[string]any         `json:"evidence,omitempty"`
-	RedactedPreview string                 `json:"redacted_preview,omitempty"`	// Safe redacted snippet
-	SecretHash      string                 `json:"secret_hash,omitempty"`	// Salted hash for deduplication
+	TargetAsset     model.Asset    `json:"target_asset"`
+	FindingType     string         `json:"finding_type"`
+	Severity        model.Severity `json:"severity"`
+	Title           string         `json:"title"`
+	Description     string         `json:"description"`
+	EvidenceKey     string         `json:"evidence_key"` // Unique identifier within the asset (e.g. domain, file:line)
+	Evidence        map[string]any `json:"evidence,omitempty"`
+	RedactedPreview string         `json:"redacted_preview,omitempty"` // Safe redacted snippet
+	SecretHash      string         `json:"secret_hash,omitempty"`      // Salted hash for deduplication
 }
 
 // Collector is the pluggable interface implemented by all monitoring engines.

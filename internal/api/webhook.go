@@ -23,7 +23,7 @@ type WebhookSubscription struct {
 	ID        uuid.UUID `json:"id"`
 	TenantID  string    `json:"tenant_id"`
 	URL       string    `json:"url"`
-	Secret    string    `json:"secret"`	// Shared secret for HMAC-SHA256 signature
+	Secret    string    `json:"secret"` // Shared secret for HMAC-SHA256 signature
 	Active    bool      `json:"active"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -64,9 +64,9 @@ func NewWebhookDispatcher(client *http.Client, logger *slog.Logger) *WebhookDisp
 		logger = slog.Default()
 	}
 	return &WebhookDispatcher{
-		client: client,
+		client:      client,
 		deadLetters: make([]DeadLetterEntry, 0),
-		logger: logger,
+		logger:      logger,
 		maxAttempts: 3,
 	}
 }
@@ -74,10 +74,10 @@ func NewWebhookDispatcher(client *http.Client, logger *slog.Logger) *WebhookDisp
 // DispatchFindingAlert delivers an HMAC-signed finding event to a webhook subscriber.
 func (d *WebhookDispatcher) DispatchFindingAlert(ctx context.Context, sub WebhookSubscription, finding *model.Finding) error {
 	payloadBytes, err := json.Marshal(map[string]any{
-		"event":      "finding.detected",
-		"timestamp":  time.Now().UTC().Format(time.RFC3339),
-		"tenant_id":  sub.TenantID,
-		"finding":    finding,
+		"event":     "finding.detected",
+		"timestamp": time.Now().UTC().Format(time.RFC3339),
+		"tenant_id": sub.TenantID,
+		"finding":   finding,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to encode webhook payload: %w", err)
@@ -132,14 +132,14 @@ func (d *WebhookDispatcher) recordDeadLetter(sub WebhookSubscription, payload st
 	}
 
 	entry := DeadLetterEntry{
-		ID: uuid.New(),
-		WebhookID: sub.ID,
-		TenantID: sub.TenantID,
-		TargetURL: sub.URL,
+		ID:          uuid.New(),
+		WebhookID:   sub.ID,
+		TenantID:    sub.TenantID,
+		TargetURL:   sub.URL,
 		PayloadJSON: payload,
-		LastError: errMsg,
-		Attempts: d.maxAttempts,
-		FailedAt: time.Now().UTC(),
+		LastError:   errMsg,
+		Attempts:    d.maxAttempts,
+		FailedAt:    time.Now().UTC(),
 	}
 
 	d.deadLetters = append(d.deadLetters, entry)

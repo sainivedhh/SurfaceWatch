@@ -35,14 +35,14 @@ type Config struct {
 // DefaultConfig provides recommended defaults.
 func DefaultConfig() Config {
 	return Config{
-		Concurrency: 4,
-		LeaseDuration: 30 * time.Second,
-		HeartbeatInterval: 10 * time.Second,
-		PollInterval: 500 * time.Millisecond,
-		BaseBackoff: 1 * time.Second,
-		MaxBackoff: 60 * time.Second,
+		Concurrency:        4,
+		LeaseDuration:      30 * time.Second,
+		HeartbeatInterval:  10 * time.Second,
+		PollInterval:       500 * time.Millisecond,
+		BaseBackoff:        1 * time.Second,
+		MaxBackoff:         60 * time.Second,
 		HostRequestsPerSec: 5.0,
-		HostBurstCapacity: 10,
+		HostBurstCapacity:  10,
 	}
 }
 
@@ -57,11 +57,11 @@ type WorkerPool struct {
 	sink        PipelineSink
 	logger      *slog.Logger
 
-	workerID    string
-	ctx         context.Context
-	cancel      context.CancelFunc
-	wg          sync.WaitGroup
-	mu          sync.Mutex
+	workerID string
+	ctx      context.Context
+	cancel   context.CancelFunc
+	wg       sync.WaitGroup
+	mu       sync.Mutex
 }
 
 // NewWorkerPool constructs a worker pool instance.
@@ -78,15 +78,15 @@ func NewWorkerPool(cfg Config, store Store, sink PipelineSink, collectors []coll
 	}
 
 	return &WorkerPool{
-		cfg: cfg,
-		store: store,
-		collectors: colMap,
+		cfg:         cfg,
+		store:       store,
+		collectors:  colMap,
 		rateLimiter: NewHostRateLimiter(rate.Limit(cfg.HostRequestsPerSec), cfg.HostBurstCapacity),
-		breakers: breakers,
-		backoff: NewBackoffCalculator(cfg.BaseBackoff, cfg.MaxBackoff),
-		sink: sink,
-		logger: logger,
-		workerID: fmt.Sprintf("worker-node-%s", uuid.New().String()[:8]),
+		breakers:    breakers,
+		backoff:     NewBackoffCalculator(cfg.BaseBackoff, cfg.MaxBackoff),
+		sink:        sink,
+		logger:      logger,
+		workerID:    fmt.Sprintf("worker-node-%s", uuid.New().String()[:8]),
 	}
 }
 

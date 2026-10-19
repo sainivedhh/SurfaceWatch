@@ -30,9 +30,9 @@ type entry struct {
 func NewHostRateLimiter(r rate.Limit, burst int) *HostRateLimiter {
 	hrl := &HostRateLimiter{
 		limiters: make(map[string]*entry),
-		rate: r,
-		burst: burst,
-		ttl: 10 * time.Minute,
+		rate:     r,
+		burst:    burst,
+		ttl:      10 * time.Minute,
 	}
 	return hrl
 }
@@ -60,7 +60,7 @@ func (h *HostRateLimiter) getLimiter(host string) *rate.Limiter {
 	if !exists {
 		lim := rate.NewLimiter(h.rate, h.burst)
 		h.limiters[host] = &entry{
-			limiter: lim,
+			limiter:  lim,
 			lastSeen: now,
 		}
 		// Periodically clean up stale limiters to prevent memory leaks

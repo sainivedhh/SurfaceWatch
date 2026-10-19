@@ -1,9 +1,9 @@
 // Package pipeline provides Redis caching with resilient fallback.
 // CACHE STRATEGY:
-// 1. Hot reads (Finding lookups and recent fingerprints) are cached in Redis with a TTL (default 15m).
-// 2. Write-Through Invalidation: On finding update or status transition, cache keys are deleted.
-// 3. Graceful Degradation: If Redis fails, errors are logged as warnings and the system
-//    falls back to PostgreSQL without failing user requests.
+//  1. Hot reads (Finding lookups and recent fingerprints) are cached in Redis with a TTL (default 15m).
+//  2. Write-Through Invalidation: On finding update or status transition, cache keys are deleted.
+//  3. Graceful Degradation: If Redis fails, errors are logged as warnings and the system
+//     falls back to PostgreSQL without failing user requests.
 package pipeline
 
 import (
@@ -53,7 +53,7 @@ func (m *MemoryCache) Set(ctx context.Context, key string, value string, ttl tim
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.store[key] = entry{
-		val: value,
+		val:       value,
 		expiresAt: time.Now().Add(ttl),
 	}
 	return nil
