@@ -77,7 +77,7 @@ func (s FindingStatus) IsValid() bool {
 	switch s {
 	case FindingStatusNew, FindingStatusAcknowledged, FindingStatusResolved, FindingStatusReopened:
 		return true
-	default: 
+	default:
 		return false
 	}
 }
@@ -106,7 +106,7 @@ func ParseSeverity(s string) (Severity, error) {
 		return SeverityHigh, nil
 	case "CRITICAL":
 		return SeverityCritical, nil
-	default: 
+	default:
 		return SeverityInfo, fmt.Errorf("unknown severity: %s", s)
 	}
 }
