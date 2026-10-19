@@ -22,12 +22,12 @@ type PipelineSink interface {
 
 // Config configures the worker pool behavior.
 type Config struct {
-	Concurrency       int
-	LeaseDuration     time.Duration
-	HeartbeatInterval time.Duration
-	PollInterval      time.Duration
-	BaseBackoff       time.Duration
-	MaxBackoff        time.Duration
+	Concurrency        int
+	LeaseDuration      time.Duration
+	HeartbeatInterval  time.Duration
+	PollInterval       time.Duration
+	BaseBackoff        time.Duration
+	MaxBackoff         time.Duration
 	HostRequestsPerSec float64
 	HostBurstCapacity  int
 }
@@ -35,14 +35,14 @@ type Config struct {
 // DefaultConfig provides recommended defaults.
 func DefaultConfig() Config {
 	return Config{
-		Concurrency:       4,
-		LeaseDuration:     30 * time.Second,
-		HeartbeatInterval: 10 * time.Second,
-		PollInterval:      500 * time.Millisecond,
-		BaseBackoff:       1 * time.Second,
-		MaxBackoff:        60 * time.Second,
-		HostRequestsPerSec: 5.0,
-		HostBurstCapacity:  10,
+		Concurrency        : 4,
+		LeaseDuration      : 30 * time.Second,
+		HeartbeatInterval  : 10 * time.Second,
+		PollInterval       : 500 * time.Millisecond,
+		BaseBackoff        : 1 * time.Second,
+		MaxBackoff         : 60 * time.Second,
+		HostRequestsPerSec : 5.0,
+		HostBurstCapacity  : 10,
 	}
 }
 
@@ -78,15 +78,15 @@ func NewWorkerPool(cfg Config, store Store, sink PipelineSink, collectors []coll
 	}
 
 	return &WorkerPool{
-		cfg:         cfg,
-		store:       store,
-		collectors:  colMap,
-		rateLimiter: NewHostRateLimiter(rate.Limit(cfg.HostRequestsPerSec), cfg.HostBurstCapacity),
-		breakers:    breakers,
-		backoff:     NewBackoffCalculator(cfg.BaseBackoff, cfg.MaxBackoff),
-		sink:        sink,
-		logger:      logger,
-		workerID:    fmt.Sprintf("worker-node-%s", uuid.New().String()[:8]),
+		cfg         : cfg,
+		store       : store,
+		collectors  : colMap,
+		rateLimiter : NewHostRateLimiter(rate.Limit(cfg.HostRequestsPerSec), cfg.HostBurstCapacity),
+		breakers    : breakers,
+		backoff     : NewBackoffCalculator(cfg.BaseBackoff, cfg.MaxBackoff),
+		sink        : sink,
+		logger      : logger,
+		workerID    : fmt.Sprintf("worker-node-%s", uuid.New().String()[:8]),
 	}
 }
 
