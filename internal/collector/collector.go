@@ -79,7 +79,7 @@ func GuardScope(sc *scope.Scope, target model.Asset) error {
 		return sc.CheckDomain(target.Value)
 	case model.AssetTypeRepo:
 		return sc.CheckRepository(target.Value)
-	default: 
+	default:
 		return nil
 	}
 }
