@@ -101,7 +101,7 @@ func (wp *WorkerPool) Start(parentCtx context.Context) {
 
 	for i := 0; i < wp.cfg.Concurrency; i++ {
 		wp.wg.Add(1)
-		workerIndex:= i
+		workerIndex: = i
 		go wp.runWorker(workerIndex)
 	}
 }
@@ -123,7 +123,7 @@ func (wp *WorkerPool) runWorker(workerIndex int) {
 		select {
 		case <-wp.ctx.Done():
 			return
-		default:
+		default: 
 		}
 
 		// Claim one job with SKIP LOCKED semantics
@@ -161,7 +161,7 @@ func (wp *WorkerPool) executeJob(job *Job) {
 	defer hbCancel()
 
 	go func() {
-		ticker:= time.NewTicker(wp.cfg.HeartbeatInterval)
+		ticker: = time.NewTicker(wp.cfg.HeartbeatInterval)
 		defer ticker.Stop()
 
 		for {
@@ -195,7 +195,7 @@ func (wp *WorkerPool) executeJob(job *Job) {
 	})
 
 	if cbErr != nil {
-		isTrans:= IsTransient(cbErr)
+		isTrans: = IsTransient(cbErr)
 		var retryAfter *time.Duration
 		var httpErr *HTTPStatusError
 		if errors.As(cbErr, &httpErr) {
