@@ -2,12 +2,17 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint-and-vet:
@@ -15,78 +20,97 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Setup Go
-        uses: actions/setup-go@v5.1.0
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
-          go-version: '1.23.2'
+          go-version-file: go.mod
           cache: true
 
       - name: Check Formatting (gofmt)
         run: |
-          diff -u <(echo -n) <(gofmt -d -s .)
+          files="$(git ls-files '*.go')"
+          if [ -z "$files" ]; then
+            echo "No Go files found."
+            exit 0
+          fi
+          unformatted="$(gofmt -l $files)"
+          if [ -n "$unformatted" ]; then
+            echo "The following Go files need gofmt:"
+            echo "$unformatted"
+            exit 1
+          fi
 
       - name: Go Vet
         run: go vet ./...
 
       - name: GolangCI-Lint
-        uses: golangci/golangci-lint-action@v6.1.1
+        uses: golangci/golangci-lint-action@4afd733a84b1f432ffbed18b68eed10a2f7734f5
         with:
           version: v1.61.0
-          args: --timeout=5m --verbose
+          args: --timeout=5m
 
   test:
     name: Race Detector & Coverage
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Setup Go
-        uses: actions/setup-go@v5.1.0
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
-          go-version: '1.23.2'
+          go-version-file: go.mod
           cache: true
 
       - name: Run Unit & Race Tests
-        run: |
-          go test -race -coverprofile=coverage.out -covermode=atomic ./internal/...
+        run: go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Upload Coverage
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: go-coverage
+          path: coverage.out
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Run Benchmark Smoke Test
-        run: |
-          go test -bench="." -run="^$" ./internal
+        run: go test -bench="." -run="^$" ./internal
 
   security:
     name: Vulnerability Audit (govulncheck)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
+      # Track vulnerabilities against the current Go toolchain rather than an
+      # obsolete pinned patch release. go.mod still defines the language version.
       - name: Setup Go
-        uses: actions/setup-go@v5.1.0
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
         with:
-          go-version: '1.23.2'
+          go-version: stable
           cache: true
 
       - name: Install and Run govulncheck
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./...
+          "$(go env GOPATH)/bin/govulncheck" ./...
 
   docker:
     name: Docker Build Validation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.7.1
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435
 
       - name: Build Container Image
-        uses: docker/build-push-action@v6.9.0
+        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991
         with:
           context: .
           push: false

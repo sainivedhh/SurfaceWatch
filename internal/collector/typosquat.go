@@ -15,13 +15,13 @@ import (
 type PermutationType string
 
 const (
-	PermOmission     PermutationType = "omission"
-	PermRepetition   PermutationType = "repetition"
+	PermOmission      PermutationType = "omission"
+	PermRepetition    PermutationType = "repetition"
 	PermTransposition PermutationType = "transposition"
-	PermAdjacentKey  PermutationType = "adjacent_key"
-	PermHomoglyph    PermutationType = "homoglyph"
-	PermTLDSwap      PermutationType = "tld_swap"
-	PermHyphenation  PermutationType = "hyphenation"
+	PermAdjacentKey   PermutationType = "adjacent_key"
+	PermHomoglyph     PermutationType = "homoglyph"
+	PermTLDSwap       PermutationType = "tld_swap"
+	PermHyphenation   PermutationType = "hyphenation"
 )
 
 // Permutation represents a generated candidate domain.
@@ -98,19 +98,16 @@ func SplitDomain(d string) (name string, tld string) {
 func (pe *PermutationEngine) GenerateAll(domain string) []Permutation {
 	var results []Permutation
 	seen := make(map[string]struct{})
-
 	add := func(p Permutation) {
 		if _, exists := seen[p.Domain]; !exists && p.Domain != domain {
 			seen[p.Domain] = struct{}{}
 			results = append(results, p)
 		}
 	}
-
 	name, tld := SplitDomain(domain)
 	if name == "" || tld == "" {
 		return results
 	}
-
 	for _, p := range pe.GenerateOmissions(name, tld) {
 		add(p)
 	}
@@ -132,7 +129,6 @@ func (pe *PermutationEngine) GenerateAll(domain string) []Permutation {
 	for _, p := range pe.GenerateHyphenations(name, tld) {
 		add(p)
 	}
-
 	return results
 }
 
@@ -145,10 +141,7 @@ func (pe *PermutationEngine) GenerateOmissions(name, tld string) []Permutation {
 	}
 	for i := range runes {
 		variant := string(runes[:i]) + string(runes[i+1:])
-		perms = append(perms, Permutation{
-			Type:   PermOmission,
-			Domain: fmt.Sprintf("%s.%s", variant, tld),
-		})
+		perms = append(perms, Permutation{Type: PermOmission, Domain: fmt.Sprintf("%s.%s", variant, tld)})
 	}
 	return perms
 }
@@ -159,10 +152,7 @@ func (pe *PermutationEngine) GenerateRepetitions(name, tld string) []Permutation
 	var perms []Permutation
 	for i := range runes {
 		variant := string(runes[:i]) + string(runes[i]) + string(runes[i:])
-		perms = append(perms, Permutation{
-			Type:   PermRepetition,
-			Domain: fmt.Sprintf("%s.%s", variant, tld),
-		})
+		perms = append(perms, Permutation{Type: PermRepetition, Domain: fmt.Sprintf("%s.%s", variant, tld)})
 	}
 	return perms
 }
@@ -178,10 +168,7 @@ func (pe *PermutationEngine) GenerateTranspositions(name, tld string) []Permutat
 		cpy := make([]rune, len(runes))
 		copy(cpy, runes)
 		cpy[i], cpy[i+1] = cpy[i+1], cpy[i]
-		perms = append(perms, Permutation{
-			Type:   PermTransposition,
-			Domain: fmt.Sprintf("%s.%s", string(cpy), tld),
-		})
+		perms = append(perms, Permutation{Type: PermTransposition, Domain: fmt.Sprintf("%s.%s", string(cpy), tld)})
 	}
 	return perms
 }
@@ -199,10 +186,7 @@ func (pe *PermutationEngine) GenerateAdjacentKeys(name, tld string) []Permutatio
 			cpy := make([]rune, len(runes))
 			copy(cpy, runes)
 			cpy[i] = n
-			perms = append(perms, Permutation{
-				Type:   PermAdjacentKey,
-				Domain: fmt.Sprintf("%s.%s", string(cpy), tld),
-			})
+			perms = append(perms, Permutation{Type: PermAdjacentKey, Domain: fmt.Sprintf("%s.%s", string(cpy), tld)})
 		}
 	}
 	return perms
@@ -221,10 +205,7 @@ func (pe *PermutationEngine) GenerateHomoglyphs(name, tld string) []Permutation 
 			cpy := make([]rune, len(runes))
 			copy(cpy, runes)
 			cpy[i] = rep
-			perms = append(perms, Permutation{
-				Type:   PermHomoglyph,
-				Domain: fmt.Sprintf("%s.%s", string(cpy), tld),
-			})
+			perms = append(perms, Permutation{Type: PermHomoglyph, Domain: fmt.Sprintf("%s.%s", string(cpy), tld)})
 		}
 	}
 	return perms
@@ -237,10 +218,7 @@ func (pe *PermutationEngine) GenerateTLDSwaps(name, tld string) []Permutation {
 		if strings.EqualFold(alt, tld) {
 			continue
 		}
-		perms = append(perms, Permutation{
-			Type:   PermTLDSwap,
-			Domain: fmt.Sprintf("%s.%s", name, alt),
-		})
+		perms = append(perms, Permutation{Type: PermTLDSwap, Domain: fmt.Sprintf("%s.%s", name, alt)})
 	}
 	return perms
 }
@@ -254,10 +232,7 @@ func (pe *PermutationEngine) GenerateHyphenations(name, tld string) []Permutatio
 	}
 	for i := 1; i < len(runes); i++ {
 		variant := string(runes[:i]) + "-" + string(runes[i:])
-		perms = append(perms, Permutation{
-			Type:   PermHyphenation,
-			Domain: fmt.Sprintf("%s.%s", variant, tld),
-		})
+		perms = append(perms, Permutation{Type: PermHyphenation, Domain: fmt.Sprintf("%s.%s", variant, tld)})
 	}
 	return perms
 }
@@ -274,36 +249,25 @@ func NewTyposquatCollector(sc *scope.Scope, resolver Resolver) *TyposquatCollect
 	if resolver == nil {
 		resolver = NewNetResolver()
 	}
-	return &TyposquatCollector{
-		resolver: resolver,
-		engine:   NewPermutationEngine(),
-		scope:    sc,
-	}
+	return &TyposquatCollector{resolver: resolver, engine: NewPermutationEngine(), scope: sc}
 }
 
-func (c *TyposquatCollector) Name() string {
-	return "typosquat_detection"
-}
+func (c *TyposquatCollector) Name() string { return "typosquat_detection" }
 
 func (c *TyposquatCollector) Collect(ctx context.Context, target model.Asset) ([]RawFinding, error) {
 	if err := GuardScope(c.scope, target); err != nil {
 		return nil, err
 	}
-
 	domain := strings.TrimSpace(strings.ToLower(target.Value))
 	permutations := c.engine.GenerateAll(domain)
-
 	var findings []RawFinding
-
 	for _, perm := range permutations {
 		if ctx.Err() != nil {
 			return nil, ctx.Err()
 		}
-
-		// Passive DNS resolution check on the lookalike candidate
+		// Passive DNS resolution check on the lookalike candidate.
 		ips, err := c.resolver.LookupHost(ctx, perm.Domain)
 		if err == nil && len(ips) > 0 {
-			// Typosquat domain is active and resolves!
 			findings = append(findings, RawFinding{
 				TargetAsset: target,
 				FindingType: "active_typosquat_domain",
@@ -321,6 +285,5 @@ func (c *TyposquatCollector) Collect(ctx context.Context, target model.Asset) ([
 			})
 		}
 	}
-
 	return findings, nil
 }

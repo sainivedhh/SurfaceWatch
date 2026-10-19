@@ -197,12 +197,12 @@ func TestWorkerPool_GracefulShutdownAndExecution(t *testing.T) {
 	}
 
 	cfg := scheduler.Config{
-		Concurrency:       2,
-		LeaseDuration:     1 * time.Second,
-		HeartbeatInterval: 200 * time.Millisecond,
-		PollInterval:      10 * time.Millisecond,
-		BaseBackoff:       10 * time.Millisecond,
-		MaxBackoff:        100 * time.Millisecond,
+		Concurrency:        2,
+		LeaseDuration:      1 * time.Second,
+		HeartbeatInterval:  200 * time.Millisecond,
+		PollInterval:       10 * time.Millisecond,
+		BaseBackoff:        10 * time.Millisecond,
+		MaxBackoff:         100 * time.Millisecond,
 		HostRequestsPerSec: 100.0,
 		HostBurstCapacity:  50,
 	}
