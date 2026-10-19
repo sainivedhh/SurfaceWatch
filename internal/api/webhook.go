@@ -30,14 +30,14 @@ type WebhookSubscription struct {
 
 // DeadLetterEntry captures failed deliveries for post-mortem investigation.
 type DeadLetterEntry struct {
-	ID           uuid.UUID `json:"id"`
-	WebhookID    uuid.UUID `json:"webhook_id"`
-	TenantID     string    `json:"tenant_id"`
-	TargetURL    string    `json:"target_url"`
-	PayloadJSON  string    `json:"payload_json"`
-	LastError    string    `json:"last_error"`
-	Attempts     int       `json:"attempts"`
-	FailedAt     time.Time `json:"failed_at"`
+	ID          uuid.UUID `json:"id"`
+	WebhookID   uuid.UUID `json:"webhook_id"`
+	TenantID    string    `json:"tenant_id"`
+	TargetURL   string    `json:"target_url"`
+	PayloadJSON string    `json:"payload_json"`
+	LastError   string    `json:"last_error"`
+	Attempts    int       `json:"attempts"`
+	FailedAt    time.Time `json:"failed_at"`
 }
 
 // ComputeHMAC generates the hexadecimal HMAC-SHA256 signature for a payload.
@@ -64,10 +64,10 @@ func NewWebhookDispatcher(client *http.Client, logger *slog.Logger) *WebhookDisp
 		logger = slog.Default()
 	}
 	return &WebhookDispatcher{
-		client:      client,
-		deadLetters: make([]DeadLetterEntry, 0),
-		logger:      logger,
-		maxAttempts: 3,
+		client      : client,
+		deadLetters : make([]DeadLetterEntry, 0),
+		logger      : logger,
+		maxAttempts : 3,
 	}
 }
 
@@ -132,14 +132,14 @@ func (d *WebhookDispatcher) recordDeadLetter(sub WebhookSubscription, payload st
 	}
 
 	entry := DeadLetterEntry{
-		ID:          uuid.New(),
-		WebhookID:   sub.ID,
-		TenantID:    sub.TenantID,
-		TargetURL:   sub.URL,
-		PayloadJSON: payload,
-		LastError:   errMsg,
-		Attempts:    d.maxAttempts,
-		FailedAt:    time.Now().UTC(),
+		ID          : uuid.New(),
+		WebhookID   : sub.ID,
+		TenantID    : sub.TenantID,
+		TargetURL   : sub.URL,
+		PayloadJSON : payload,
+		LastError   : errMsg,
+		Attempts    : d.maxAttempts,
+		FailedAt    : time.Now().UTC(),
 	}
 
 	d.deadLetters = append(d.deadLetters, entry)
