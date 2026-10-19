@@ -53,8 +53,8 @@ func (m *MemoryCache) Set(ctx context.Context, key string, value string, ttl tim
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.store[key] = entry{
-		val       : value,
-		expiresAt : time.Now().Add(ttl),
+		val      : value,
+		expiresAt: time.Now().Add(ttl),
 	}
 	return nil
 }
