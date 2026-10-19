@@ -42,7 +42,7 @@ type DeadLetterEntry struct {
 
 // ComputeHMAC generates the hexadecimal HMAC-SHA256 signature for a payload.
 func ComputeHMAC(payload []byte, secret string) string {
-	mac: = hmac.New(sha256.New, []byte(secret))
+	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write(payload)
 	return hex.EncodeToString(mac.Sum(nil))
 }
@@ -64,9 +64,9 @@ func NewWebhookDispatcher(client *http.Client, logger *slog.Logger) *WebhookDisp
 		logger = slog.Default()
 	}
 	return &WebhookDispatcher{
-		client     : client,
+		client: client,
 		deadLetters: make([]DeadLetterEntry, 0),
-		logger     : logger,
+		logger: logger,
 		maxAttempts: 3,
 	}
 }
@@ -126,20 +126,20 @@ func (d *WebhookDispatcher) recordDeadLetter(sub WebhookSubscription, payload st
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	errMsg: = "unknown error"
+	errMsg := "unknown error"
 	if err != nil {
 		errMsg = err.Error()
 	}
 
 	entry := DeadLetterEntry{
-		ID         : uuid.New(),
-		WebhookID  : sub.ID,
-		TenantID   : sub.TenantID,
-		TargetURL  : sub.URL,
+		ID: uuid.New(),
+		WebhookID: sub.ID,
+		TenantID: sub.TenantID,
+		TargetURL: sub.URL,
 		PayloadJSON: payload,
-		LastError  : errMsg,
-		Attempts   : d.maxAttempts,
-		FailedAt   : time.Now().UTC(),
+		LastError: errMsg,
+		Attempts: d.maxAttempts,
+		FailedAt: time.Now().UTC(),
 	}
 
 	d.deadLetters = append(d.deadLetters, entry)
@@ -152,7 +152,7 @@ func (d *WebhookDispatcher) recordDeadLetter(sub WebhookSubscription, payload st
 func (d *WebhookDispatcher) GetDeadLetters() []DeadLetterEntry {
 	d.mu.Lock()
 	defer d.mu.Unlock()
-	out: = make([]DeadLetterEntry, len(d.deadLetters))
+	out := make([]DeadLetterEntry, len(d.deadLetters))
 	copy(out, d.deadLetters)
 	return out
 }
