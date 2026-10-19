@@ -29,6 +29,7 @@ jobs:
           cache: true
 
       - name: Check Formatting (gofmt)
+        # Check-only: run gofmt locally before committing any Go source changes.
         run: |
           files="$(git ls-files '*.go')"
           if [ -z "$files" ]; then
