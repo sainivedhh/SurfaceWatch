@@ -97,7 +97,7 @@ type CreateAssetRequest struct {
 }
 
 func (app *AppContext) HandleCreateAsset(w http.ResponseWriter, r *http.Request) {
-	tenantID:= GetTenantID(r.Context())
+	tenantID: = GetTenantID(r.Context())
 
 	var req CreateAssetRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -147,8 +147,8 @@ func (app *AppContext) HandleCreateAsset(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *AppContext) HandleListAssets(w http.ResponseWriter, r *http.Request) {
-	tenantID:= GetTenantID(r.Context())
-	assets  := app.AssetStore.List(tenantID)
+	tenantID: = GetTenantID(r.Context())
+	assets  : = app.AssetStore.List(tenantID)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]any{"assets": assets, "count": len(assets)})
 }
@@ -160,7 +160,7 @@ type CreateScanRequest struct {
 }
 
 func (app *AppContext) HandleCreateScan(w http.ResponseWriter, r *http.Request) {
-	tenantID:= GetTenantID(r.Context())
+	tenantID: = GetTenantID(r.Context())
 
 	var req CreateScanRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -198,7 +198,7 @@ func (app *AppContext) HandleCreateScan(w http.ResponseWriter, r *http.Request) 
 	}
 
 	for _, colName := range collectorsForAsset {
-		job          := &scheduler.Job{
+		job          : = &scheduler.Job{
 			ID           : uuid.New(),
 			TenantID     : tenantID,
 			ScanID       : scan.ID,
@@ -216,8 +216,8 @@ func (app *AppContext) HandleCreateScan(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *AppContext) HandleListScans(w http.ResponseWriter, r *http.Request) {
-	tenantID:= GetTenantID(r.Context())
-	scans   := app.ScanStore.List(tenantID)
+	tenantID: = GetTenantID(r.Context())
+	scans   : = app.ScanStore.List(tenantID)
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]any{"scans": scans, "count": len(scans)})
 }
@@ -225,10 +225,10 @@ func (app *AppContext) HandleListScans(w http.ResponseWriter, r *http.Request) {
 // --- FINDINGS HANDLERS ---
 
 func (app *AppContext) HandleListFindings(w http.ResponseWriter, r *http.Request) {
-	tenantID:= GetTenantID(r.Context())
-	q       := r.URL.Query()
+	tenantID: = GetTenantID(r.Context())
+	q       : = r.URL.Query()
 
-	filter  := pipeline.Filter{
+	filter  : = pipeline.Filter{
 		Severity: q.Get("severity"),
 		Status  : q.Get("status"),
 		Cursor  : q.Get("cursor"),
@@ -267,7 +267,7 @@ func (app *AppContext) HandleListFindings(w http.ResponseWriter, r *http.Request
 	nextCursor := ""
 
 	if cursorOffset < len(findings) {
-		end:= cursorOffset + filter.Limit
+		end: = cursorOffset + filter.Limit
 		if end >= len(findings) {
 			end = len(findings)
 		} else {
@@ -285,8 +285,8 @@ func (app *AppContext) HandleListFindings(w http.ResponseWriter, r *http.Request
 }
 
 func (app *AppContext) HandleGetFinding(w http.ResponseWriter, r *http.Request) {
-	tenantID:= GetTenantID(r.Context())
-	idStr   := chi.URLParam(r, "id")
+	tenantID: = GetTenantID(r.Context())
+	idStr   : = chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		WriteError(w, http.StatusBadRequest, "INVALID_ID", "Finding ID must be a valid UUID")
@@ -309,8 +309,8 @@ type UpdateStatusRequest struct {
 }
 
 func (app *AppContext) HandleUpdateFindingStatus(w http.ResponseWriter, r *http.Request) {
-	tenantID:= GetTenantID(r.Context())
-	idStr   := chi.URLParam(r, "id")
+	tenantID: = GetTenantID(r.Context())
+	idStr   : = chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
 	if err != nil {
 		WriteError(w, http.StatusBadRequest, "INVALID_ID", "Finding ID must be a valid UUID")
@@ -348,13 +348,13 @@ func (app *AppContext) HandleUpdateFindingStatus(w http.ResponseWriter, r *http.
 // --- STATS SUMMARY HANDLER ---
 
 func (app *AppContext) HandleStatsSummary(w http.ResponseWriter, r *http.Request) {
-	tenantID      := GetTenantID(r.Context())
+	tenantID      : = GetTenantID(r.Context())
 
-	assets        := app.AssetStore.List(tenantID)
-	scans         := app.ScanStore.List(tenantID)
+	assets        : = app.AssetStore.List(tenantID)
+	scans         : = app.ScanStore.List(tenantID)
 	findings, _ := app.Findings.ListByTenant(r.Context(), tenantID, pipeline.Filter{})
 
-	severityCounts:= map[string]int{
+	severityCounts: = map[string]int{
 		"CRITICAL": 0,
 		"HIGH":     0,
 		"MEDIUM":   0,
@@ -394,7 +394,7 @@ func HandleHealthz(w http.ResponseWriter, r *http.Request) {
 
 func (app *AppContext) HandleReadyz(w http.ResponseWriter, r *http.Request) {
 	// Check Redis availability if cache exists
-	cacheStatus:= "healthy"
+	cacheStatus: = "healthy"
 	if app.Cache != nil && !app.Cache.IsAvailable() {
 		cacheStatus = "degraded"
 	}
