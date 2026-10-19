@@ -26,10 +26,10 @@ type RawFinding struct {
 	Severity        model.Severity         `json:"severity"`
 	Title           string                 `json:"title"`
 	Description     string                 `json:"description"`
-	EvidenceKey     string                 `json:"evidence_key"`                 // Unique identifier within the asset (e.g. domain, file:line)
+	EvidenceKey     string                 `json:"evidence_key"`	// Unique identifier within the asset (e.g. domain, file:line)
 	Evidence        map[string]any         `json:"evidence,omitempty"`
-	RedactedPreview string                 `json:"redacted_preview,omitempty"` // Safe redacted snippet
-	SecretHash      string                 `json:"secret_hash,omitempty"`      // Salted hash for deduplication
+	RedactedPreview string                 `json:"redacted_preview,omitempty"`	// Safe redacted snippet
+	SecretHash      string                 `json:"secret_hash,omitempty"`	// Salted hash for deduplication
 }
 
 // Collector is the pluggable interface implemented by all monitoring engines.
@@ -48,15 +48,15 @@ func LiveCallsAllowed() bool {
 const defaultSecretSalt = "surfacewatch_v1_leak_salt_"
 
 func HashSecret(raw string) string {
-	h := sha256.Sum256([]byte(defaultSecretSalt + raw))
+	h:= sha256.Sum256([]byte(defaultSecretSalt + raw))
 	return hex.EncodeToString(h[:])
 }
 
 // RedactSecret returns a safe preview showing only prefix and suffix characters.
 // Example: "AKIAIOSFODNN7EXAMPLE" -> "AKIA...MPLE"
 func RedactSecret(secret string) string {
-	runes := []rune(secret)
-	n := len(runes)
+	runes:= []rune(secret)
+	n    := len(runes)
 	if n <= 6 {
 		return "******"
 	}
