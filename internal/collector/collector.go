@@ -26,7 +26,7 @@ type RawFinding struct {
 	Severity        model.Severity         `json:"severity"`
 	Title           string                 `json:"title"`
 	Description     string                 `json:"description"`
-	EvidenceKey     string                 `json:"evidence_key"` // Unique identifier within the asset (e.g. domain, file:line)
+	EvidenceKey     string                 `json:"evidence_key"`                 // Unique identifier within the asset (e.g. domain, file:line)
 	Evidence        map[string]any         `json:"evidence,omitempty"`
 	RedactedPreview string                 `json:"redacted_preview,omitempty"` // Safe redacted snippet
 	SecretHash      string                 `json:"secret_hash,omitempty"`      // Salted hash for deduplication
