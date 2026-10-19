@@ -48,15 +48,15 @@ func LiveCallsAllowed() bool {
 const defaultSecretSalt = "surfacewatch_v1_leak_salt_"
 
 func HashSecret(raw string) string {
-	h:= sha256.Sum256([]byte(defaultSecretSalt + raw))
+	h: = sha256.Sum256([]byte(defaultSecretSalt + raw))
 	return hex.EncodeToString(h[:])
 }
 
 // RedactSecret returns a safe preview showing only prefix and suffix characters.
 // Example: "AKIAIOSFODNN7EXAMPLE" -> "AKIA...MPLE"
 func RedactSecret(secret string) string {
-	runes:= []rune(secret)
-	n    := len(runes)
+	runes: = []rune(secret)
+	n    : = len(runes)
 	if n <= 6 {
 		return "******"
 	}
@@ -79,7 +79,7 @@ func GuardScope(sc *scope.Scope, target model.Asset) error {
 		return sc.CheckDomain(target.Value)
 	case model.AssetTypeRepo:
 		return sc.CheckRepository(target.Value)
-	default:
+	default: 
 		return nil
 	}
 }
