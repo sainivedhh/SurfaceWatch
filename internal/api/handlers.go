@@ -130,13 +130,13 @@ func (app *AppContext) HandleCreateAsset(w http.ResponseWriter, r *http.Request)
 
 	now := time.Now().UTC()
 	asset := &model.Asset{
-		ID:        uuid.New(),
-		TenantID:  tenantID,
-		Type:      req.Type,
-		Value:     val,
-		Labels:    req.Labels,
-		CreatedAt: now,
-		UpdatedAt: now,
+		ID        : uuid.New(),
+		TenantID  : tenantID,
+		Type      : req.Type,
+		Value     : val,
+		Labels    : req.Labels,
+		CreatedAt : now,
+		UpdatedAt : now,
 	}
 
 	app.AssetStore.Create(asset)
@@ -176,13 +176,13 @@ func (app *AppContext) HandleCreateScan(w http.ResponseWriter, r *http.Request) 
 
 	now := time.Now().UTC()
 	scan := &model.Scan{
-		ID:            uuid.New(),
-		TenantID:      tenantID,
-		TargetAssetID: asset.ID,
-		TargetValue:   asset.Value,
-		Status:        model.ScanStatusQueued,
-		CreatedAt:     now,
-		UpdatedAt:     now,
+		ID            : uuid.New(),
+		TenantID      : tenantID,
+		TargetAssetID : asset.ID,
+		TargetValue   : asset.Value,
+		Status        : model.ScanStatusQueued,
+		CreatedAt     : now,
+		UpdatedAt     : now,
 	}
 	app.ScanStore.Create(scan)
 
@@ -199,13 +199,13 @@ func (app *AppContext) HandleCreateScan(w http.ResponseWriter, r *http.Request) 
 
 	for _, colName := range collectorsForAsset {
 		job := &scheduler.Job{
-			ID:            uuid.New(),
-			TenantID:      tenantID,
-			ScanID:        scan.ID,
-			CollectorName: colName,
-			Target:        *asset,
-			Status:        scheduler.JobStatusQueued,
-			NextRunAt:     now,
+			ID            : uuid.New(),
+			TenantID      : tenantID,
+			ScanID        : scan.ID,
+			CollectorName : colName,
+			Target        : *asset,
+			Status        : scheduler.JobStatusQueued,
+			NextRunAt     : now,
 		}
 		_ = app.Scheduler.Enqueue(r.Context(), job)
 	}
@@ -229,9 +229,9 @@ func (app *AppContext) HandleListFindings(w http.ResponseWriter, r *http.Request
 	q := r.URL.Query()
 
 	filter := pipeline.Filter{
-		Severity: q.Get("severity"),
-		Status:   q.Get("status"),
-		Cursor:   q.Get("cursor"),
+		Severity : q.Get("severity"),
+		Status   : q.Get("status"),
+		Cursor   : q.Get("cursor"),
 	}
 
 	if limitStr := q.Get("limit"); limitStr != "" {
