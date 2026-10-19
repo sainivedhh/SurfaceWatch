@@ -35,14 +35,14 @@ type Config struct {
 // DefaultConfig provides recommended defaults.
 func DefaultConfig() Config {
 	return Config{
-		Concurrency       : 4,
-		LeaseDuration     : 30 * time.Second,
-		HeartbeatInterval : 10 * time.Second,
-		PollInterval      : 500 * time.Millisecond,
-		BaseBackoff       : 1 * time.Second,
-		MaxBackoff        : 60 * time.Second,
+		Concurrency: 4,
+		LeaseDuration: 30 * time.Second,
+		HeartbeatInterval: 10 * time.Second,
+		PollInterval: 500 * time.Millisecond,
+		BaseBackoff: 1 * time.Second,
+		MaxBackoff: 60 * time.Second,
 		HostRequestsPerSec: 5.0,
-		HostBurstCapacity : 10,
+		HostBurstCapacity: 10,
 	}
 }
 
@@ -78,15 +78,15 @@ func NewWorkerPool(cfg Config, store Store, sink PipelineSink, collectors []coll
 	}
 
 	return &WorkerPool{
-		cfg        : cfg,
-		store      : store,
-		collectors : colMap,
+		cfg: cfg,
+		store: store,
+		collectors: colMap,
 		rateLimiter: NewHostRateLimiter(rate.Limit(cfg.HostRequestsPerSec), cfg.HostBurstCapacity),
-		breakers   : breakers,
-		backoff    : NewBackoffCalculator(cfg.BaseBackoff, cfg.MaxBackoff),
-		sink       : sink,
-		logger     : logger,
-		workerID   : fmt.Sprintf("worker-node-%s", uuid.New().String()[:8]),
+		breakers: breakers,
+		backoff: NewBackoffCalculator(cfg.BaseBackoff, cfg.MaxBackoff),
+		sink: sink,
+		logger: logger,
+		workerID: fmt.Sprintf("worker-node-%s", uuid.New().String()[:8]),
 	}
 }
 
@@ -101,7 +101,7 @@ func (wp *WorkerPool) Start(parentCtx context.Context) {
 
 	for i := 0; i < wp.cfg.Concurrency; i++ {
 		wp.wg.Add(1)
-		workerIndex: = i
+		workerIndex := i
 		go wp.runWorker(workerIndex)
 	}
 }
@@ -161,7 +161,7 @@ func (wp *WorkerPool) executeJob(job *Job) {
 	defer hbCancel()
 
 	go func() {
-		ticker: = time.NewTicker(wp.cfg.HeartbeatInterval)
+		ticker := time.NewTicker(wp.cfg.HeartbeatInterval)
 		defer ticker.Stop()
 
 		for {
@@ -195,7 +195,7 @@ func (wp *WorkerPool) executeJob(job *Job) {
 	})
 
 	if cbErr != nil {
-		isTrans: = IsTransient(cbErr)
+		isTrans := IsTransient(cbErr)
 		var retryAfter *time.Duration
 		var httpErr *HTTPStatusError
 		if errors.As(cbErr, &httpErr) {
