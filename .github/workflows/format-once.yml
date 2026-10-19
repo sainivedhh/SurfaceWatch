@@ -1,0 +1,49 @@
+name: One-time Go Formatting Repair
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: contains(github.event.head_commit.message, '[run-gofmt-repair]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: true
+
+      - name: Setup Go
+        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Format the seven reported files
+        run: |
+          gofmt -w \
+            internal/api/handlers.go \
+            internal/api/webhook.go \
+            internal/collector/collector.go \
+            internal/model/types.go \
+            internal/pipeline/cache.go \
+            internal/scheduler/pool.go \
+            internal/scheduler/ratelimit.go
+          test -z "$(gofmt -l $(git ls-files '*.go'))"
+
+      - name: Commit formatting and remove this temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/format-once.yml
+          git add internal/api/handlers.go internal/api/webhook.go internal/collector/collector.go internal/model/types.go internal/pipeline/cache.go internal/scheduler/pool.go internal/scheduler/ratelimit.go
+          if git diff --cached --quiet; then
+            echo "No formatting changes to commit."
+            exit 0
+          fi
+          git commit -m "Apply gofmt to reported Go files"
+          git push
