@@ -97,8 +97,7 @@ func Parse(data []byte) (*Scope, error) {
 	}
 
 	for _, r := range cfg.Allowlist.Repositories {
-		clean := filepath.Clean(r)
-		sc.cleanRepos = append(sc.cleanRepos, clean)
+		sc.cleanRepos = append(sc.cleanRepos, cleanPath(r))
 	}
 
 	for _, e := range cfg.Excludes.Domains {
@@ -109,8 +108,7 @@ func Parse(data []byte) (*Scope, error) {
 	}
 
 	for _, er := range cfg.Excludes.Repositories {
-		clean := filepath.Clean(er)
-		sc.excludeRepos = append(sc.excludeRepos, clean)
+		sc.excludeRepos = append(sc.excludeRepos, cleanPath(er))
 	}
 
 	for _, cidr := range cfg.Allowlist.CIDRs {
@@ -127,23 +125,63 @@ func Parse(data []byte) (*Scope, error) {
 // normalizeHostname strips schemes, ports, trailing dots, and lowercases the domain.
 func normalizeHostname(host string) string {
 	h := strings.TrimSpace(host)
-	// Strip URL schemes if erroneously provided
 	if idx := strings.Index(h, "://"); idx != -1 {
 		h = h[idx+3:]
 	}
-	// Strip path or query if present
 	if idx := strings.IndexAny(h, "/?#"); idx != -1 {
 		h = h[:idx]
 	}
-	// Strip port if present
 	if strings.Contains(h, ":") && !strings.Contains(h, "]") {
 		if hostPart, _, err := net.SplitHostPort(h); err == nil {
 			h = hostPart
 		}
 	}
-	// Strip trailing dot (DNS FQDN representation)
 	h = strings.TrimSuffix(h, ".")
 	return strings.ToLower(h)
+}
+
+// cleanPath normalizes both POSIX and Windows-style paths independent of runner OS.
+// Windows drive paths are deliberately kept in Windows form so a Linux runner can
+// validate the same scope configuration used on a Windows operator workstation.
+func cleanPath(path string) string {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return ""
+	}
+	if isWindowsPath(path) {
+		return strings.ToLower(pathpkgCleanWindows(path))
+	}
+	return filepath.Clean(path)
+}
+
+func isWindowsPath(path string) bool {
+	return len(path) >= 3 &&
+		((path[0] >= 'a' && path[0] <= 'z') || (path[0] >= 'A' && path[0] <= 'Z')) &&
+		path[1] == ':' && (path[2] == '\\' || path[2] == '/')
+}
+
+func pathpkgCleanWindows(path string) string {
+	path = strings.ReplaceAll(path, "/", "\\")
+	drive := strings.ToLower(path[:2])
+	rest := strings.TrimLeft(path[2:], "\\")
+	parts := strings.Split(rest, "\\")
+	stack := make([]string, 0, len(parts))
+	for _, part := range parts {
+		switch part {
+		case "", ".":
+			continue
+		case "..":
+			if len(stack) > 0 {
+				stack = stack[:len(stack)-1]
+			}
+		default:
+			stack = append(stack, strings.ToLower(part))
+		}
+	}
+	if len(stack) == 0 {
+		return drive + "\\"
+	}
+	return drive + "\\" + strings.Join(stack, "\\")
 }
 
 // CheckDomain verifies that a target domain or subdomain is strictly inside the scope allowlist.
@@ -154,84 +192,64 @@ func (s *Scope) CheckDomain(target string) error {
 	if norm == "" {
 		return &ErrOutOfScope{Target: target, Reason: "empty target hostname"}
 	}
-
-	// 1. Check exclusions first
 	if _, excluded := s.excludeDoms[norm]; excluded {
 		return &ErrOutOfScope{Target: target, Reason: "explicitly excluded domain"}
 	}
-
-	// Check if target is a subdomain of an excluded domain
 	for exc := range s.excludeDoms {
 		if strings.HasSuffix(norm, "."+exc) {
 			return &ErrOutOfScope{Target: target, Reason: fmt.Sprintf("subdomain of excluded domain %q", exc)}
 		}
 	}
-
-	// 2. Exact match in allowed root domains
 	if _, ok := s.exactDomains[norm]; ok {
 		return nil
 	}
-
-	// 3. Subdomain of an allowed root domain (e.g. "api.example.com" belongs to "example.com")
 	for root := range s.exactDomains {
 		if strings.HasSuffix(norm, "."+root) {
 			return nil
 		}
 	}
-
-	// 4. Wildcard matching (e.g. "*.example.com" covers "foo.example.com", "a.b.example.com")
 	for _, w := range s.wildcardSubs {
 		if norm == w || strings.HasSuffix(norm, "."+w) {
 			return nil
 		}
 	}
-
-	return &ErrOutOfScope{
-		Target: target,
-		Reason: "hostname does not match any authorized domain or wildcard rule",
-	}
+	return &ErrOutOfScope{Target: target, Reason: "hostname does not match any authorized domain or wildcard rule"}
 }
 
 // CheckRepository verifies whether a local directory or repository path is authorized.
 func (s *Scope) CheckRepository(path string) error {
-	clean := filepath.Clean(path)
+	clean := cleanPath(path)
 	if clean == "" || clean == "." {
 		return &ErrOutOfScope{Target: path, Reason: "empty or relative repository path"}
 	}
-
-	// Check exclusions
 	for _, exc := range s.excludeRepos {
 		if isSubdir(clean, exc) {
 			return &ErrOutOfScope{Target: path, Reason: "explicitly excluded directory"}
 		}
 	}
-
-	// Check allowlist
 	for _, allow := range s.cleanRepos {
 		if isSubdir(clean, allow) {
 			return nil
 		}
 	}
-
-	return &ErrOutOfScope{
-		Target: path,
-		Reason: "directory path is outside authorized repositories",
-	}
+	return &ErrOutOfScope{Target: path, Reason: "directory path is outside authorized repositories"}
 }
 
-// isSubdir checks if child is the same as or inside parent dir.
+// isSubdir checks if child is the same as or inside parent dir. Its inputs must
+// already be normalized by cleanPath so Windows and POSIX path boundaries are preserved.
 func isSubdir(child, parent string) bool {
-	c := strings.ToLower(filepath.Clean(child))
-	p := strings.ToLower(filepath.Clean(parent))
-	if c == p {
+	if child == parent {
 		return true
 	}
-	// Verify directory boundary to prevent prefix collisions like /var/repo vs /var/reposuffix
-	pWithSep := p
-	if !strings.HasSuffix(pWithSep, string(filepath.Separator)) {
-		pWithSep += string(filepath.Separator)
+	separator := string(filepath.Separator)
+	if isWindowsPath(child) && isWindowsPath(parent) {
+		separator = "\\"
 	}
-	return strings.HasPrefix(c, pWithSep)
+	parentPrefix := parent
+	if !strings.HasSuffix(parentPrefix, separator) {
+		parentPrefix += separator
+	}
+	return strings.HasPrefix(child, parentPrefix)
 }
 
 // CheckIP verifies if an IP address belongs to an authorized CIDR.
@@ -240,17 +258,12 @@ func (s *Scope) CheckIP(ipStr string) error {
 	if ip == nil {
 		return &ErrOutOfScope{Target: ipStr, Reason: "invalid IP address format"}
 	}
-
 	for _, cidr := range s.parsedCIDRs {
 		if cidr.Contains(ip) {
 			return nil
 		}
 	}
-
-	return &ErrOutOfScope{
-		Target: ipStr,
-		Reason: "IP address not in authorized CIDRs",
-	}
+	return &ErrOutOfScope{Target: ipStr, Reason: "IP address not in authorized CIDRs"}
 }
 
 // IsErrOutOfScope is a helper to check if an error is an ErrOutOfScope.
