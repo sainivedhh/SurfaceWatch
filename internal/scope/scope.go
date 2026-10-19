@@ -145,6 +145,9 @@ func normalizeHostname(host string) string {
 // validate the same scope configuration used on a Windows operator workstation.
 func cleanPath(path string) string {
 	path = strings.TrimSpace(path)
+	// Some YAML/Go test fixtures and Windows tools preserve doubled separators.
+	// Collapse them before path classification so equivalent Windows paths match.
+	path = strings.ReplaceAll(path, `\\`, `\`)
 	if path == "" {
 		return ""
 	}
