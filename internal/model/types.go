@@ -115,25 +115,25 @@ func ParseSeverity(s string) (Severity, error) {
 // CRITICAL SAFETY RULE: Raw exposed secrets are NEVER stored here or in the database.
 // Only a redacted preview and a cryptographically salted hash are retained.
 type Finding struct {
-	ID                   uuid.UUID              `json:"id"`
-	TenantID             string                 `json:"tenant_id"`
-	ScanID               uuid.UUID              `json:"scan_id"`
-	AssetID              uuid.UUID              `json:"asset_id"`
-	Fingerprint          string                 `json:"fingerprint"` // Deterministic hash of (type, asset, evidence key)
-	FindingType          string                 `json:"finding_type"`
-	Severity             Severity               `json:"severity"`
-	Score                float64                `json:"score"` // Calculated via formula: TypeWeight * Exposure * Confidence
-	Status               FindingStatus          `json:"status"`
-	Title                string                 `json:"title"`
-	Description          string                 `json:"description"`
-	Evidence             map[string]any         `json:"evidence,omitempty"`
-	RedactedPreview      string                 `json:"redacted_preview,omitempty"` // Safe representation (e.g., "AKIA...3FQA")
-	SecretHash           string                 `json:"secret_hash,omitempty"`      // Salted HMAC/SHA256 for deduplication
-	FirstSeen            time.Time              `json:"first_seen"`
-	LastSeen             time.Time              `json:"last_seen"`
-	OccurrenceCount      int                    `json:"occurrence_count"`
-	CreatedAt            time.Time              `json:"created_at"`
-	UpdatedAt            time.Time              `json:"updated_at"`
+	ID              uuid.UUID              `json:"id"`
+	TenantID        string                 `json:"tenant_id"`
+	ScanID          uuid.UUID              `json:"scan_id"`
+	AssetID         uuid.UUID              `json:"asset_id"`
+	Fingerprint     string                 `json:"fingerprint"` // Deterministic hash of (type, asset, evidence key)
+	FindingType     string                 `json:"finding_type"`
+	Severity        Severity               `json:"severity"`
+	Score           float64                `json:"score"` // Calculated via formula: TypeWeight * Exposure * Confidence
+	Status          FindingStatus          `json:"status"`
+	Title           string                 `json:"title"`
+	Description     string                 `json:"description"`
+	Evidence        map[string]any         `json:"evidence,omitempty"`
+	RedactedPreview string                 `json:"redacted_preview,omitempty"` // Safe representation (e.g., "AKIA...3FQA")
+	SecretHash      string                 `json:"secret_hash,omitempty"`      // Salted HMAC/SHA256 for deduplication
+	FirstSeen       time.Time              `json:"first_seen"`
+	LastSeen        time.Time              `json:"last_seen"`
+	OccurrenceCount int                    `json:"occurrence_count"`
+	CreatedAt       time.Time              `json:"created_at"`
+	UpdatedAt       time.Time              `json:"updated_at"`
 }
 
 // EvidenceJSON converts the evidence map to JSON bytes for storage.
