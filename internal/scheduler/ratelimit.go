@@ -28,26 +28,26 @@ type entry struct {
 // NewHostRateLimiter constructs a token-bucket rate limiter.
 // Default: r req/sec, burst allowance.
 func NewHostRateLimiter(r rate.Limit, burst int) *HostRateLimiter {
-	hrl := &HostRateLimiter{
-		limiters : make(map[string]*entry),
-		rate     : r,
-		burst    : burst,
-		ttl      : 10 * time.Minute,
+	hrl     := &HostRateLimiter{
+		limiters: make(map[string]*entry),
+		rate    : r,
+		burst   : burst,
+		ttl     : 10 * time.Minute,
 	}
 	return hrl
 }
 
 // Wait blocks until the target host's token bucket yields a token or the context cancels.
 func (h *HostRateLimiter) Wait(ctx context.Context, target string) error {
-	host := normalizeTarget(target)
-	limiter := h.getLimiter(host)
+	host   := normalizeTarget(target)
+	limiter:= h.getLimiter(host)
 	return limiter.Wait(ctx)
 }
 
 // Allow reports whether an event may happen right now without blocking.
 func (h *HostRateLimiter) Allow(target string) bool {
-	host := normalizeTarget(target)
-	limiter := h.getLimiter(host)
+	host   := normalizeTarget(target)
+	limiter:= h.getLimiter(host)
 	return limiter.Allow()
 }
 
@@ -55,13 +55,13 @@ func (h *HostRateLimiter) getLimiter(host string) *rate.Limiter {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	now := time.Now()
+	now     := time.Now()
 	e, exists := h.limiters[host]
 	if !exists {
-		lim := rate.NewLimiter(h.rate, h.burst)
+		lim     := rate.NewLimiter(h.rate, h.burst)
 		h.limiters[host] = &entry{
-			limiter  : lim,
-			lastSeen : now,
+			limiter : lim,
+			lastSeen: now,
 		}
 		// Periodically clean up stale limiters to prevent memory leaks
 		if len(h.limiters) > 1000 {
@@ -83,7 +83,7 @@ func (h *HostRateLimiter) cleanup(now time.Time) {
 }
 
 func normalizeTarget(target string) string {
-	t := strings.TrimSpace(strings.ToLower(target))
+	t:= strings.TrimSpace(strings.ToLower(target))
 	if idx := strings.Index(t, "://"); idx != -1 {
 		t = t[idx+3:]
 	}
