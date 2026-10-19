@@ -13,11 +13,11 @@ import (
 // HostRateLimiter manages isolated token buckets per unique host to prevent
 // scanning from causing unintentional denial-of-service on target infrastructure.
 type HostRateLimiter struct {
-	mu      sync.Mutex
+	mu       sync.Mutex
 	limiters map[string]*entry
-	rate    rate.Limit
-	burst   int
-	ttl     time.Duration
+	rate     rate.Limit
+	burst    int
+	ttl      time.Duration
 }
 
 type entry struct {
@@ -29,10 +29,10 @@ type entry struct {
 // Default: r req/sec, burst allowance.
 func NewHostRateLimiter(r rate.Limit, burst int) *HostRateLimiter {
 	hrl := &HostRateLimiter{
-		limiters: make(map[string]*entry),
-		rate:     r,
-		burst:    burst,
-		ttl:      10 * time.Minute,
+		limiters : make(map[string]*entry),
+		rate     : r,
+		burst    : burst,
+		ttl      : 10 * time.Minute,
 	}
 	return hrl
 }
@@ -60,8 +60,8 @@ func (h *HostRateLimiter) getLimiter(host string) *rate.Limiter {
 	if !exists {
 		lim := rate.NewLimiter(h.rate, h.burst)
 		h.limiters[host] = &entry{
-			limiter:  lim,
-			lastSeen: now,
+			limiter  : lim,
+			lastSeen : now,
 		}
 		// Periodically clean up stale limiters to prevent memory leaks
 		if len(h.limiters) > 1000 {
