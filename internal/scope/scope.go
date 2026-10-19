@@ -147,7 +147,7 @@ func cleanPath(path string) string {
 	path = strings.TrimSpace(path)
 	// Some YAML/Go test fixtures and Windows tools preserve doubled separators.
 	// Collapse them before path classification so equivalent Windows paths match.
-	path = strings.ReplaceAll(path, `\\`, `\`)
+	path = strings.ReplaceAll(path, string([]byte{92, 92}), string([]byte{92}))
 	if path == "" {
 		return ""
 	}
