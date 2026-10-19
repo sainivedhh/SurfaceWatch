@@ -13,9 +13,6 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  GO_VERSION: "1.23.2"
-
 jobs:
   lint-and-vet:
     name: Lint & Code Hygiene
@@ -27,12 +24,17 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: go.mod
           cache: true
 
       - name: Check Formatting (gofmt)
         run: |
-          unformatted="$(gofmt -l $(git ls-files '*.go'))"
+          files="$(git ls-files '*.go')"
+          if [ -z "$files" ]; then
+            echo "No Go files found."
+            exit 0
+          fi
+          unformatted="$(gofmt -l $files)"
           if [ -n "$unformatted" ]; then
             echo "The following Go files need gofmt:"
             echo "$unformatted"
@@ -58,7 +60,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: go.mod
           cache: true
 
       - name: Run Unit & Race Tests
@@ -83,6 +85,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # Track vulnerabilities against the current Go toolchain rather than an
+      # obsolete pinned patch release. go.mod still defines the language version.
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
