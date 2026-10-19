@@ -1,5 +1,4 @@
 name: CI
-# CI rerun fix: ensure workflow is evaluated from the corrected lint action reference.
 
 on:
   push:
