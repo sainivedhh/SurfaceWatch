@@ -123,7 +123,7 @@ func (wp *WorkerPool) runWorker(workerIndex int) {
 		select {
 		case <-wp.ctx.Done():
 			return
-		default: 
+		default:
 		}
 
 		// Claim one job with SKIP LOCKED semantics
